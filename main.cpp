@@ -7,13 +7,12 @@ bool movement(int **table, bool isAI, int hole, int &points);
 bool checkTable(int **table, int &pointsIa, int &pointsPlayer);
 void clearTable (int **table);
 void clearMemory(int **table);
+int heuristicTable(int **table, bool ai);
 int main() {
     int northPoints = 0;
     int southPoints = 0;
     bool playerOrIaHasAnotherMove = false;
     bool endGame = false;
-    int input = 0;    
-    //std::cin>>input;
     int **tableKalah = startTable();   
     std::cout<< "Bienvenido al juego de kalah!\n"; 
     bool turn=false;//false to iA, true to player
@@ -196,4 +195,50 @@ void clearTable (int **table){
         table[0][i] = 0;
         table[1][i] = 0;
     }
+}
+
+// I will count the number of movement that the adversary has at that instant
+// and the number of movements that the actual player can give to the adversary
+int heuristicTable(int **table, bool ai) {
+    int movements = 0;
+    bool giveMovement = false;
+    bool oneMoveMore = false;
+    if (ai) {
+        for (int i = 0; i <= 5; ++i) {
+            //adversary movement
+            if (table[1][i] != 0) {
+                movements += 1;
+            }
+            // last movement get one more movement
+            if (table[1][i] - (5 - i) == 1) {
+                oneMoveMore = true;
+            }
+            // ai can give a move
+            if ((table[0][i] - (i + 1)) > 0) {
+                giveMovement = true;
+            }
+        }
+    } else {
+        for (int i = 0; i <= 5; ++i) {
+            //    AI Movements
+            if (table[0][i] != 0) {
+                movements += 1;
+            }
+            // last movement get one more movement
+            if ((table[0][i] - i) == 1) {
+                oneMoveMore = true;
+            }
+            // player can give a move
+            if ((table[1][i] - (i + 1)) > 0) {
+                giveMovement = true;
+            }
+        }
+    }
+    if (giveMovement) {
+        movements += 1;
+    }
+    if (oneMoveMore) {
+        movements += 1;
+    }
+    return movements;
 }
