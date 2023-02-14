@@ -6,60 +6,51 @@ void printTable(int **table, int southPoints, int northPoints);
 bool movement(int **table, bool isAI, int hole, int &points);
 bool checkTable(int **table, int &pointsIa, int &pointsPlayer);
 void clearTable (int **table);
-
+void clearMemory(int **table);
 int main() {
     int northPoints = 0;
     int southPoints = 0;
     bool playerOrIaHasAnotherMove = false;
     bool endGame = false;
-    int input = 0;
+    int input = 0;    
     //std::cin>>input;
-    int **tableKalah = startTable();
-    printTable(tableKalah, northPoints, southPoints);
-    movement(tableKalah, false, 1, southPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    movement(tableKalah, false, 2, southPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    movement(tableKalah, false, 3, southPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    movement(tableKalah, false, 4, southPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    movement(tableKalah, false, 5, southPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    movement(tableKalah, true, 5, northPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    movement(tableKalah, true, 4, northPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    movement(tableKalah, true, 3, northPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    playerOrIaHasAnotherMove = movement(tableKalah, true, 0, northPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    std::cout << playerOrIaHasAnotherMove << std::endl;
-    playerOrIaHasAnotherMove = movement(tableKalah, false, 4, southPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    std::cout << playerOrIaHasAnotherMove << std::endl;
-    playerOrIaHasAnotherMove = movement(tableKalah, false, 3, southPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    std::cout << playerOrIaHasAnotherMove << std::endl;
-    movement(tableKalah, true, 2, northPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    movement(tableKalah, true, 1, northPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    movement(tableKalah, true, 0, northPoints);
-    printTable(tableKalah, southPoints, northPoints);
-    if (checkTable(tableKalah,northPoints,southPoints)) {
-        movement(tableKalah, true, 5, northPoints);
-    }
-    printTable(tableKalah, southPoints, northPoints);
-    if (checkTable(tableKalah,northPoints,southPoints)) {
+    int **tableKalah = startTable();   
+    std::cout<< "Bienvenido al juego de kalah!\n"; 
+    bool turn=false;//false to iA, true to player
+    do
+    {
+        int hole;        
+        printTable(tableKalah,northPoints,southPoints);
+        if(!turn){
+            std::cout<< "Inserte la posicion desde la cual quiere iniciar a mover sus semillas a las derecha\n";
+            std::cin>> hole;
+            if(!movement(tableKalah,false,hole,southPoints)){
+                turn=!turn;
+            }
+        }else{
+            //here is the heuristic and that stuff
+            if(!movement(tableKalah,true,1,northPoints)){
+                turn=!turn;
+            }            
+        }        
+    } while (checkTable(tableKalah, northPoints,southPoints));
+    clearTable(tableKalah);
+    printTable(tableKalah,southPoints,northPoints);
+    if(northPoints>southPoints){
+        std::cout<< "Has perdido!!";
     }else{
-        clearTable(tableKalah);
+        std::cout<< "Has Ganado!! ";
     }
-    printTable(tableKalah, southPoints, northPoints);
-    
+    clearMemory(tableKalah);    
     return 0;
 }
-
+void clearMemory(int **table){
+    for (int i = 0; i < 2; i++)
+    {
+        delete[] table[i];              
+    }
+    delete[] table;
+}
 int **startTable() {
     int **table = new int *[2];
     for (int i = 0; i < 2; i++) {
@@ -72,7 +63,7 @@ int **startTable() {
 }
 
 void printTable(int **table, int southPoints, int northPoints) {
-    std::cout << northPoints << "       North AI" << std::endl;
+    std::cout <<  "\t\tNorth AI Points====>" << northPoints <<std::endl;
     for (int i = -1; i < 2; i++) {
         for (int j = 0; j < 6; j++) {
             if (i == -1) {
@@ -83,7 +74,7 @@ void printTable(int **table, int southPoints, int northPoints) {
         }
         std::cout << std::endl;
     }
-    std::cout << "South     " << southPoints << std::endl;
+    std::cout << "\t\tSouth Player Points====>" << southPoints << std::endl;
 }
 
 bool movement(int **table, bool isAI, int hole, int &points) {
