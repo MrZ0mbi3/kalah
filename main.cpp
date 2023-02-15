@@ -1,4 +1,12 @@
 #include <iostream>
+#include <vector>
+
+struct node {
+    int heuristic;
+    int **table;
+    node *next;
+    int holeMoved;
+};
 
 int **startTable();
 
@@ -14,14 +22,19 @@ void clearMemory(int **table);
 
 int heuristicTable(int **table, bool ai);
 
+void createTree(int **table);
+
+int **copyTable(int **table);
+
 int main() {
     int northPoints = 0;
     int southPoints = 0;
     int **actualTableKalah = startTable();
     std::cout << "Bienvenido al juego de kalah!\n";
     bool AIMoment = false;//true to iA, false to player
-    printTable(actualTableKalah, northPoints, southPoints);
-
+    printTable(actualTableKalah, southPoints, northPoints);
+    createTree(actualTableKalah);
+/*
     do {
         int hole;
         if (AIMoment) {
@@ -44,7 +57,7 @@ int main() {
     } else {
         std::cout << "Has Ganado!! ";
     }
-    clearMemory(actualTableKalah);
+    clearMemory(actualTableKalah);*/
     return 0;
 }
 
@@ -247,4 +260,57 @@ int heuristicTable(int **table, bool ai) {
         movements += 1;
     }
     return movements;
+}
+
+int **copyTable(int **table){
+    int **newTable = new int *[2];
+    for (int i = 0; i < 2; i++) {
+        newTable[i] = new int[6];
+        for (int j = 0; j < 6; j++) {
+            newTable[i][j] = table[i][j];
+        }
+    }
+    return newTable;
+}
+
+void createTree(int **table){
+    std::cout<<"Creando arbol"<<std::endl;
+    node root = {};
+    int **nextMoveTable;
+    int points = 0;
+    root.table = table;
+    root.next = new node[6];
+    //creating possible movements of the AI
+    for (int i = 0; i < 6; ++i) {
+        nextMoveTable = copyTable(table);
+        movement(nextMoveTable, false,i,points);
+        node son = {};
+        son.table = nextMoveTable;
+        son.holeMoved = i;
+        root.next[i] = son;
+    }
+    // creating possible movements for the player
+
+    for (int i = 0; i < 6; ++i) {
+        root.next[i].next = new node[6];
+        for (int j = 0; j < 6; ++j) {
+            node grandSon = {};
+            nextMoveTable = copyTable(root.next[i].table);
+            movement(nextMoveTable, true, j, points);
+            grandSon.table = nextMoveTable;
+            grandSon.holeMoved = j;
+            grandSon.heuristic = heuristicTable(grandSon.table, true);
+            root.next[i].next[j] = grandSon;
+        }
+    }
+    printTable(root.table, points, points);
+    for (int i = 0; i < 6; ++i) {
+        std::cout<<"Hijo:"<<i<<std::endl;
+        printTable(root.next[i].table, points,points);
+        for (int j = 0; j < 6; ++j) {
+            std::cout<<"Nieto:"<<i<<j<<std::endl;
+            std::cout<<"Heuristica:"<<root.next[i].next[j].heuristic<<std::endl;
+            printTable(root.next[i].next[j].table, points,points);
+        }
+    }
 }
