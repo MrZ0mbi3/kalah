@@ -1,4 +1,13 @@
 #include <iostream>
+#include <vector>
+#include <limits>
+
+struct node {
+    int heuristic;
+    int **table;
+    node *next;
+    int holeMoved;
+};
 
 int **startTable();
 
@@ -14,19 +23,22 @@ void clearMemory(int **table);
 
 int heuristicTable(int **table, bool ai);
 
+int createTree(int **table);
+
+int **copyTable(int **table);
+
 int main() {
     int northPoints = 0;
     int southPoints = 0;
     int **actualTableKalah = startTable();
     std::cout << "Bienvenido al juego de kalah!\n";
     bool AIMoment = false;//true to iA, false to player
-    printTable(actualTableKalah, northPoints, southPoints);
-
+    printTable(actualTableKalah, southPoints, northPoints);
     do {
         int hole;
         if (AIMoment) {
             //here is the heuristic and that stuff
-            AIMoment = movement(actualTableKalah, true, 3, northPoints);
+            AIMoment = movement(actualTableKalah, true, createTree(actualTableKalah), northPoints);
         } else {
             std::cout << "Inserte la posicion desde la cual quiere iniciar a mover sus semillas a las derecha\n";
             std::cin >> hole;
@@ -247,4 +259,77 @@ int heuristicTable(int **table, bool ai) {
         movements += 1;
     }
     return movements;
+}
+
+int **copyTable(int **table){
+    int **newTable = new int *[2];
+    for (int i = 0; i < 2; i++) {
+        newTable[i] = new int[6];
+        for (int j = 0; j < 6; j++) {
+            newTable[i][j] = table[i][j];
+        }
+    }
+    return newTable;
+}
+
+int createTree(int **table){
+    std::cout<<"IA Jugando"<<std::endl;
+    node root = {};
+    int **nextMoveTable;
+    int points = 0;
+    int minimum = std::numeric_limits<int>::max();
+    int maximum = std::numeric_limits<int>::min();
+    int holeSelected;
+    root.table = table;
+    root.next = new node[6];
+    //creating possible movements of the AI
+    for (int i = 0; i < 6; ++i) {
+        nextMoveTable = copyTable(table);
+        movement(nextMoveTable, false,i,points);
+        node son = {};
+        son.table = nextMoveTable;
+        son.holeMoved = i;
+        root.next[i] = son;
+    }
+    // creating possible movements for the player
+
+    for (int i = 0; i < 6; ++i) {
+        root.next[i].next = new node[6];
+        for (int j = 0; j < 6; ++j) {
+            node grandSon = {};
+            nextMoveTable = copyTable(root.next[i].table);
+            movement(nextMoveTable, true, j, points);
+            grandSon.table = nextMoveTable;
+            grandSon.holeMoved = j;
+            grandSon.heuristic = heuristicTable(grandSon.table, true);
+            root.next[i].next[j] = grandSon;
+        }
+    }
+
+    //give heuristic to the son
+    for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j) {
+            if (root.next[i].next[j].heuristic < minimum){
+                minimum = root.next[i].next[j].heuristic;
+            }
+        }
+        root.next[i].heuristic = minimum;
+        minimum = std::numeric_limits<int>::max();
+    }
+
+    //give heuristic to the desicion to take
+    do {
+        for (int i = 0; i < 6; ++i) {
+            if (root.next[i].heuristic > maximum){
+                maximum = root.next[i].heuristic;
+                holeSelected = i;
+            }
+        }
+        root.heuristic = maximum;
+        if (table[0][holeSelected] == 0){
+            root.next[holeSelected].heuristic = 0;
+            maximum = std::numeric_limits<int>::min();
+        }
+    } while (table[0][holeSelected] == 0);
+    return holeSelected;
 }
