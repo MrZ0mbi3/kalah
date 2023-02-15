@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <limits>
 
 struct node {
     int heuristic;
@@ -22,7 +23,7 @@ void clearMemory(int **table);
 
 int heuristicTable(int **table, bool ai);
 
-void createTree(int **table);
+int createTree(int **table);
 
 int **copyTable(int **table);
 
@@ -33,13 +34,11 @@ int main() {
     std::cout << "Bienvenido al juego de kalah!\n";
     bool AIMoment = false;//true to iA, false to player
     printTable(actualTableKalah, southPoints, northPoints);
-    createTree(actualTableKalah);
-/*
     do {
         int hole;
         if (AIMoment) {
             //here is the heuristic and that stuff
-            AIMoment = movement(actualTableKalah, true, 3, northPoints);
+            AIMoment = movement(actualTableKalah, true, createTree(actualTableKalah), northPoints);
         } else {
             std::cout << "Inserte la posicion desde la cual quiere iniciar a mover sus semillas a las derecha\n";
             std::cin >> hole;
@@ -57,7 +56,7 @@ int main() {
     } else {
         std::cout << "Has Ganado!! ";
     }
-    clearMemory(actualTableKalah);*/
+    clearMemory(actualTableKalah);
     return 0;
 }
 
@@ -273,11 +272,14 @@ int **copyTable(int **table){
     return newTable;
 }
 
-void createTree(int **table){
-    std::cout<<"Creando arbol"<<std::endl;
+int createTree(int **table){
+    std::cout<<"IA Jugando"<<std::endl;
     node root = {};
     int **nextMoveTable;
     int points = 0;
+    int minimum = std::numeric_limits<int>::max();
+    int maximum = std::numeric_limits<int>::min();
+    int holeSelected;
     root.table = table;
     root.next = new node[6];
     //creating possible movements of the AI
@@ -303,14 +305,31 @@ void createTree(int **table){
             root.next[i].next[j] = grandSon;
         }
     }
-    printTable(root.table, points, points);
+
+    //give heuristic to the son
     for (int i = 0; i < 6; ++i) {
-        std::cout<<"Hijo:"<<i<<std::endl;
-        printTable(root.next[i].table, points,points);
         for (int j = 0; j < 6; ++j) {
-            std::cout<<"Nieto:"<<i<<j<<std::endl;
-            std::cout<<"Heuristica:"<<root.next[i].next[j].heuristic<<std::endl;
-            printTable(root.next[i].next[j].table, points,points);
+            if (root.next[i].next[j].heuristic < minimum){
+                minimum = root.next[i].next[j].heuristic;
+            }
         }
+        root.next[i].heuristic = minimum;
+        minimum = std::numeric_limits<int>::max();
     }
+
+    //give heuristic to the desicion to take
+    do {
+        for (int i = 0; i < 6; ++i) {
+            if (root.next[i].heuristic > maximum){
+                maximum = root.next[i].heuristic;
+                holeSelected = i;
+            }
+        }
+        root.heuristic = maximum;
+        if (table[0][holeSelected] == 0){
+            root.next[holeSelected].heuristic = 0;
+            maximum = std::numeric_limits<int>::min();
+        }
+    } while (table[0][holeSelected] == 0);
+    return holeSelected;
 }
