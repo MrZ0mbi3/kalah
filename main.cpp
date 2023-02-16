@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
 #include <limits>
-
 struct node {
     int heuristic;
     int **table;
@@ -86,7 +85,9 @@ void printTable(int **table, int southPoints, int northPoints) {
     for (int i = -1; i < 2; i++) {
         for (int j = 0; j < 6; j++) {
             if (i == -1) {
+                std::cout << "\E[0m\E[31m\E[40m";
                 std::cout << "\t" << j;
+                std::cout << "\E[0m\E[0m\E[40m";
             } else {
                 std::cout << "\t" << table[i][j];
             }
