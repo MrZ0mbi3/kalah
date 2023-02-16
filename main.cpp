@@ -32,22 +32,25 @@ int main() {
     int southPoints = 0;
     int **actualTableKalah = startTable();
     std::cout << "Bienvenido al juego de kalah!\n";
-    bool AIMoment = false;//true to iA, false to player
-    printTable(actualTableKalah, southPoints, northPoints);
+    bool AIMoment = false;//true to iA, false to player    
     do {
+        printTable(actualTableKalah, southPoints, northPoints);
         int hole;
-        if (AIMoment) {
-            //here is the heuristic and that stuff
-            AIMoment = movement(actualTableKalah, true, createTree(actualTableKalah), northPoints);
+        if (AIMoment) {     
+            int IAmovement=createTree(actualTableKalah);
+            AIMoment = movement(actualTableKalah, true,IAmovement, northPoints);
+            std::cout<<"la IA selecciono el hueco "<<IAmovement<<std::endl;
         } else {
             std::cout << "Inserte la posicion desde la cual quiere iniciar a mover sus semillas a las derecha\n";
             std::cin >> hole;
-            if (movement(actualTableKalah, false, hole, southPoints) == false) {
-                AIMoment = true;
+            if(hole<=5&&hole>=0){
+                if (movement(actualTableKalah, false, hole, southPoints) == false) {
+                    AIMoment = true;
+                }
+            }else{
+                std::cout<<"has ingresado un valor no valido, intentalo de nuevo...\n";          
             }
-        }
-        printTable(actualTableKalah, southPoints, northPoints);
-
+        }       
     } while (checkTable(actualTableKalah, northPoints, southPoints));
     clearTable(actualTableKalah);
     printTable(actualTableKalah, southPoints, northPoints);
